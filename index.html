@@ -17,6 +17,12 @@
         text-anchor: middle;
     }
 
+    .node .textInChart {
+        font: 15px sans-serif;
+        pointer-events: none;
+        text-anchor: middle;
+    }
+
     line.link {
         fill: none;
         stroke: #9ecae1;
@@ -95,7 +101,7 @@ function update() {
 
     nodeEnter.append("circle")
             .attr("r", function (d) {
-                return Math.sqrt(d.population) / 10 || 4.5;
+                return Math.sqrt(d.population) / 5 || 4.5;
             });
 
     nodeEnter.append("text")
@@ -227,11 +233,12 @@ function toChart() {
                     return d.fiscalite == null && d.population == null
                 })
                 .remove();
-        d3.selectAll(".text")
+        d3.selectAll(".node").selectAll(".text")
                 .transition()
                 .delay(750)
                 .duration(1500)
-                .attr("dy", "-5");
+                .attr("dy", "-5")
+                .attr("class", "textInChart");
         d3.selectAll(".link").remove();
         svg.append("g") // Add the X Axis
                 .attr("class", "x axis")
@@ -255,7 +262,7 @@ function toChart() {
 setTimeout(function () {
     toChart();
 
-}, 2000);
+}, 5000);
 
 
 </script>
