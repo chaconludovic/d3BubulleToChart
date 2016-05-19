@@ -1,0 +1,115 @@
+{
+    "name": "Entité",
+    "children": [
+        {
+            "name": "CC",
+            "children": [
+                {
+                    "name": "CC 1",
+                    "population": 3938,
+                    "fiscalite": 8756
+                },
+                {
+                    "name": "CC 2",
+                    "population": 5345,
+                    "fiscalite": 5435
+                },
+                {
+                    "name": "CC 3",
+                    "population": 5455,
+                    "fiscalite": 9876
+                },
+                {
+                    "name": "CC 4",
+                    "population": 2342,
+                    "fiscalite": 678
+                },
+                {
+                    "name": "CC 5",
+                    "population": 8898,
+                    "fiscalite": 567
+                }
+            ]
+        },
+        {
+            "name": "CA",
+            "children": [
+                {
+                    "name": "CA 1",
+                    "population": 5555,
+                    "fiscalite": 1432
+                },
+                {
+                    "name": "CA 2",
+                    "population": 6454,
+                    "fiscalite": 15343
+                },
+                {
+                    "name": "CA 3",
+                    "population": 4543,
+                    "fiscalite": 1437
+                },
+                {
+                    "name": "CA 4",
+                    "population": 7656,
+                    "fiscalite": 15449
+                },
+                {
+                    "name": "CA 5",
+                    "population": 2354,
+                    "fiscalite": 22345
+                }
+            ]
+        },
+        {
+            "name": "CO",
+            "children": [
+                {
+                    "name": "CO 1",
+                    "population": 5555,
+                    "fiscalite": 4312
+                },
+                {
+                    "name": "CO 2",
+                    "population": 6544,
+                    "fiscalite": 15444
+                },
+                {
+                    "name": "CO 3",
+                    "population": 3453,
+                    "fiscalite": 34517
+                },
+                {
+                    "name": "CO 4",
+                    "population": 7656,
+                    "fiscalite": 19324
+                },
+                {
+                    "name": "CO 5",
+                    "population": 6543,
+                    "fiscalite": 25234
+                },
+                {
+                    "name": "CO 6",
+                    "population": 8765,
+                    "fiscalite": 12343
+                },
+                {
+                    "name": "CO 7",
+                    "population": 2367,
+                    "fiscalite": 34654
+                },
+                {
+                    "name": "CO 8",
+                    "population": 4589,
+                    "fiscalite": 34678
+                },
+                {
+                    "name": "CO 9",
+                    "population": 1298,
+                    "fiscalite": 32456
+                }
+            ]
+        }
+    ]
+}
