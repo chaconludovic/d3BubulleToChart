@@ -116,7 +116,106 @@ function update() {
             });
 
     node.select("circle")
+            .attr("data-legend", function (d) {
+                return d.name
+            })
             .style("fill", color);
+
+    svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", "translate(50,30)")
+            .style("font-size", "12px")
+            .call(legend)
+}
+
+function legend(lg) {
+    lg.append("g")
+            .call(legendFiscalite)
+    lg.append("g")
+            .attr("transform", function () {
+                return "translate(" + 0 + "," + 100 + ")";
+            })
+            .call(legendPopulation)
+}
+function legendPopulation(g) {
+    g.append("text")
+            .style("text-anchor", "middle")
+            .text("Population");
+    var f
+            = flatten(root);
+    var min = d3.min(f, function (node) {
+        return node.population;
+    });
+    var max = d3.max(f, function (node) {
+        return node.population;
+    });
+    g.append("text")
+            .text(min)
+            .attr("transform", function () {
+                return "translate(" + 0 + "," + 20 + ")";
+            });
+    g.append("text")
+            .text(max)
+            .attr("transform", function () {
+                return "translate(" + 0 + "," + 50 + ")";
+            });
+    g.append("circle")
+            .attr("transform", function () {
+                return "translate(" + 50 + "," + 20 + ")";
+            })
+            .attr("r", function () {
+                return Math.sqrt(min) / 5 || 4.5
+            });
+    g.append("circle")
+            .attr("transform", function () {
+                return "translate(" + 50 + "," + 50 + ")";
+            })
+            .attr("r", function () {
+                return Math.sqrt(max) / 5 || 4.5
+            })
+}
+function legendFiscalite(g) {
+
+    var color = d3.interpolateRgb(colorbrewer.Greens[9][0], colorbrewer.Greens[9][8]),
+            max = 5;
+    var dat = [];
+    for (var i = 0; i < max; i += 0.1) {
+        dat.push(i);
+    }
+    g.append("text")
+            .style("text-anchor", "middle")
+            .text("Fiscalite")
+            .attr("transform", function () {
+                return "translate(" + 0 + "," + (-20) + ")";
+            });
+    var f
+            = flatten(root);
+    var minFiscalite = d3.min(f, function (node) {
+        return node.fiscalite;
+    });
+    var maxfiscalite = d3.max(f, function (node) {
+        return node.fiscalite;
+    });
+    g.append("text")
+            .text(minFiscalite)
+            .attr("transform", function (d) {
+                return "translate(" + -40 + "," + dat[0] * 10 + ")";
+            });
+    g.append("text")
+            .text(maxfiscalite)
+            .attr("transform", function (d) {
+                return "translate(" + -40 + "," + dat[dat.length - 1] * 10 + ")";
+            });
+    g.selectAll("rect").data(dat).enter().append("rect")
+            .attr("class", "band")
+            .attr("width", "100px")
+            .attr("height", "6px")
+            .style("fill", function (d) {
+                return color(d / max);
+            }).text(" ")
+            .attr("transform", function (d) {
+                return "translate(" + 0 + "," + d * 10 + ")";
+            });
 }
 
 function tick() {
@@ -192,6 +291,7 @@ function cleanForce() {
             })
             .remove();
     d3.selectAll(".link").remove();
+    d3.selectAll(".legendFiscalite").remove();
 }
 
 function toChart() {
