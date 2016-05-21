@@ -106,8 +106,33 @@
                 },
                 {
                     "name": "CO 9",
-                    "population": 1298,
-                    "fiscalite": 32456
+                    "population": 2298,
+                    "fiscalite": 43456
+                },
+                {
+                    "name": "CO 10",
+                    "population": 8543,
+                    "fiscalite": 25234
+                },
+                {
+                    "name": "CO 11",
+                    "population": 3765,
+                    "fiscalite": 12343
+                },
+                {
+                    "name": "CO 12",
+                    "population": 7367,
+                    "fiscalite": 34654
+                },
+                {
+                    "name": "CO 13",
+                    "population": 3589,
+                    "fiscalite": 36678
+                },
+                {
+                    "name": "CO 14",
+                    "population": 3298,
+                    "fiscalite": 45456
                 }
             ]
         }
