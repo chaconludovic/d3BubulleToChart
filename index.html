@@ -53,6 +53,19 @@
         text-anchor: middle;
         font-style: italic;
     }
+
+    div.tooltip {
+        position: absolute;
+        text-align: center;
+        width: 100px;
+        height: 60px;
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+    }
 </style>
 <body>
 <div class="container">
@@ -84,6 +97,11 @@ var margin = {top: 30, right: 20, bottom: 30, left: 60}, width = 960 - margin.le
         root,
         scale;
 var facteurRayon = 4, rayonParDefaut = 4.5;
+
+var tooltip = d3.select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
 var force = d3.layout.force()
         .linkDistance(80)
@@ -180,7 +198,37 @@ function setForce() {
             });
 
     node.select("circle")
-            .style("fill", color);
+            .style("fill", color)
+            .on("mouseover", function (d) {
+                if (d.children == undefined) {
+                    tooltip.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                }
+
+            })
+            .on("mousemove", function (d) {
+                if (d.children == undefined) {
+                    tooltip.style("top",
+                                    (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px")
+                            .html(d.name + "" + "<br/>" + "Fiscalite : " + d.fiscalite + "<br/>" + "Population :" + d.population)
+                    ;
+                } else {
+                    tooltip
+                            .html("")
+                            .style("opacity", 0);
+                }
+            })
+            .on("mouseout", function () {
+                tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+            })
+            .on("mousedown", function () {
+                tooltip
+                        .style("opacity", 0);
+            });
+    ;
 
     // add legend
     svg.append("g")
