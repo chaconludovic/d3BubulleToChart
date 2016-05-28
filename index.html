@@ -142,6 +142,7 @@ function loadForce() {
         if (error) throw error;
         root = json;
         setForce();
+        addLegend();
     });
 }
 function setForce() {
@@ -197,8 +198,14 @@ function setForce() {
                 return d.name;
             });
 
-    node.select("circle")
-            .style("fill", color)
+    var circle = node.select("circle")
+            .style("fill", color);
+    addToolTipBehaviour(circle);
+
+}
+
+function addToolTipBehaviour(circle) {
+    circle
             .on("mouseover", function (d) {
                 if (d.children == undefined) {
                     tooltip.transition()
@@ -228,14 +235,15 @@ function setForce() {
                 tooltip
                         .style("opacity", 0);
             });
-    ;
+}
 
+function addLegend() {
     // add legend
     svg.append("g")
             .attr("class", "legend")
             .attr("transform", "translate(50,30)")
             .style("font-size", "12px")
-            .call(legend)
+            .call(legend);
 }
 
 function legend(lg) {
