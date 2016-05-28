@@ -16,6 +16,10 @@
         stroke-width: 1.5px;
     }
 
+    .button {
+        width: 100px;
+    }
+
     .node text {
         font: 10px sans-serif;
         pointer-events: none;
@@ -39,6 +43,12 @@
         stroke: grey;
         stroke-width: 1;
         shape-rendering: crispEdges;
+    }
+
+    .legend text {
+        font-weight: bold;
+        text-anchor: middle;
+        font-style: italic;
     }
 </style>
 <body>
@@ -91,12 +101,20 @@ var link = svg.selectAll(".link"),
 d3.select("#titre")
         .text("Visualisation  en arborescence")
         .style("font-weight", "bold")
+        .style("font-size", "14px")
 ;
-d3.select("#textExplicatif").text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
-        "Representation de la population et de la fiscalité. La valeur pour chaque entitée de la population est représentée par la taille de la bulle." +
-        "La valeur pour chaque entitée de la fiscalité est représentée par la force de la couleur.");
+effetZoomSur("#titre");
+d3.select("#textExplicatif")
+        .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
+                "Representation de la population et de la fiscalité. La valeur pour chaque entitée de la population est représentée par la taille de la bulle." +
+                "La valeur pour chaque entitée de la fiscalité est représentée par la force de la couleur.");
 
 loadForce();
+
+
+// *****************************************************************************************************************************
+// Force
+// *****************************************************************************************************************************
 
 function loadForce() {
     d3.json("data/data.json", function (error, json) {
@@ -179,10 +197,10 @@ function legend(lg) {
             .call(legendPopulation)
 }
 function legendPopulation(g) {
-    g.append("text")
-            .style("font-weight", "bold")
-            .style("text-anchor", "middle")
+    var population = g.append("text")
+            .attr("id", "idPopulationTextLegende")
             .text("Population");
+    effetZoomAvecDelaySur("#" + population.attr("id"), 3000);
     var minMax = calculateMinMaxPopulation();
     var min = minMax.min;
     var max = minMax.max;
@@ -226,10 +244,11 @@ function legendFiscalite(g) {
     for (var i = 0; i < max; i += 0.1) {
         dat.push(i);
     }
-    g.append("text")
-            .style("font-weight", "bold")
-            .style("text-anchor", "middle")
-            .text("Fiscalite")
+    var fiscaliteText = g.append("text")
+            .attr("id", "idFiscaliteTextLegende")
+            .text("Fiscalite");
+    effetZoomAvecDelaySur("#" + fiscaliteText.attr("id"), 6000);
+    fiscaliteText
             .attr("transform", function () {
                 return "translate(" + 0 + "," + (-20) + ")";
             });
@@ -339,32 +358,17 @@ function toChart() {
      });
      d3.selectAll("line").remove();*/
 }
+
+// *****************************************************************************************************************************
+// Chart
+// *****************************************************************************************************************************
+
 function setChart() {
-// *************************
-    // add chart
-    // *************************
     var x = d3.scale.linear().range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
     var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);
     var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
     force.stop();
-
-    d3.select("#titre")
-            .transition()
-            .delay(1500)
-            .duration(2000)
-            .text("Visualisation par tableau simple")
-            .style("font-weight", "bold")
-    ;
-    d3.select("#textExplicatif")
-            .transition()
-            .delay(1500)
-            .duration(2000)
-            .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
-                    "Representation de la population et de la fiscalité. " +
-                    "La valeur pour chaque entitée de la population est représentée par l'axe des ordonnées." +
-                    "La valeur pour chaque entitée de la fiscalité est représentée par l'axe des abscisses.")
-    ;
 
     var maxFisca = d3.max(flatten(root), function (node) {
         return node.children ? 0 : node.fiscalite;
@@ -374,8 +378,66 @@ function setChart() {
     var maxPop = d3.max(flatten(root), function (node) {
         return node.children ? 0 : node.population;
     });
+
     y.domain([0, maxPop]);
+    // re write title/text
+    setChartTitle();
     // add axis
+    addChartAxis(xAxis, yAxis);
+    // animate nodes to their charts destination position
+    setChartNodes(x, y);
+    // cleaning
+    cleanForce();
+    cleanButton();
+}
+
+
+function setChartNodes(x, y) {
+    var nodes = d3.selectAll(".node");
+    nodes
+            .filter(function (d) {
+                return d.fiscalite != null || d.population != null
+            })
+            .transition()
+            .delay(750)
+            .duration(1500)
+            .attr("transform", function (d) {
+                return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
+            });
+    nodes.selectAll("circle")
+            .transition()
+            .delay(750)
+            .duration(2000)
+            .attr("r", 2);
+    nodes.selectAll(".text")
+            .transition()
+            .delay(1000)
+            .duration(2500)
+            .attr("dy", "-5")
+            .style("font", "18px sans-serif")
+            .attr("class", "textInChart");
+}
+
+function setChartTitle() {
+    d3.select("#titre")
+            .transition()
+            .delay(1500)
+            .duration(2000)
+            .text("Visualisation par tableau simple")
+            .style("font-weight", "bold")
+    ;
+    effetZoomSur("#titre");
+    d3.select("#textExplicatif")
+            .transition()
+            .delay(1500)
+            .duration(2000)
+            .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
+                    "Representation de la population et de la fiscalité. " +
+                    "La valeur pour chaque entitée de la population est représentée par l'axe des ordonnées." +
+                    "La valeur pour chaque entitée de la fiscalité est représentée par l'axe des abscisses.")
+    ;
+}
+function addChartAxis(xAxis, yAxis) {
     svg.append("g") // Add the X Axis
             .attr("class", "x axis")
             .attr("transform", "translate(0," + height + ")")
@@ -403,36 +465,6 @@ function setChart() {
             .transition()
             .delay(1500)
             .text("Population");
-    // *************************
-    // animate force to chart
-    // *************************
-    // animate nodes to their charts destination position
-    var nodes = d3.selectAll(".node");
-    nodes
-            .filter(function (d) {
-                return d.fiscalite != null || d.population != null
-            })
-            .transition()
-            .delay(750)
-            .duration(1500)
-            .attr("transform", function (d) {
-                return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
-            });
-    nodes.selectAll("circle")
-            .transition()
-            .delay(750)
-            .duration(2000)
-            .attr("r", 2);
-    nodes.selectAll(".text")
-            .transition()
-            .delay(1000)
-            .duration(2500)
-            .attr("dy", "-5")
-            .style("font", "18px sans-serif")
-            .attr("class", "textInChart");
-
-    cleanForce();
-    cleanButton();
 }
 
 /*
@@ -484,6 +516,25 @@ setTimeout(function () {
     // toChart();
 
 }, 5000);
+
+function effetZoomSur(id) {
+    effetZoomAvecDelaySur(id, 2000);
+}
+function effetZoomAvecDelaySur(id, delay) {
+    var font_size_original = d3.select(id).style("font-size");
+    d3.select(id)
+            .transition()
+            .delay(delay)
+            .duration(2000)
+            .style("font-size", "20px")
+    ;
+    d3.select(id)
+            .transition()
+            .delay(delay + 2000)
+            .duration(2000)
+            .style("font-size", font_size_original)
+    ;
+}
 
 
 </script>
