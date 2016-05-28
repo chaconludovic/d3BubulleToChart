@@ -16,8 +16,11 @@
         stroke-width: 1.5px;
     }
 
-    .button {
+    .buttonNext {
         width: 100px;
+        height: 50px;
+        background-color: #04B4ED;
+
     }
 
     .node text {
@@ -56,7 +59,7 @@
     <div class="row">
         <div class="col-lg-2">
             <div id="next">
-                <input name="nextButton" class="button" type="button" value="next" onclick="toChart()"/>
+                <input name="nextButton" class="buttonNext" type="button" value="next" onclick="toChart()"/>
             </div>
         </div>
         <div class="col-lg-offset-4 col-lg-6">
@@ -70,7 +73,7 @@
         </div>
     </div>
     <div class="row">
-        <div id="shuffle"><input name="shuffleButton" class="button" type="button" value="Shuffle"/></div>
+        <div id="shuffle"><input name="shuffleButton" type="button" value="Shuffle"/></div>
     </div>
 </div>
 
@@ -247,7 +250,7 @@ function legendFiscalite(g) {
     var fiscaliteText = g.append("text")
             .attr("id", "idFiscaliteTextLegende")
             .text("Fiscalite");
-    effetZoomAvecDelaySur("#" + fiscaliteText.attr("id"), 6000);
+    effetZoomAvecDelaySur("#" + fiscaliteText.attr("id"), 5000);
     fiscaliteText
             .attr("transform", function () {
                 return "translate(" + 0 + "," + (-20) + ")";
@@ -520,6 +523,7 @@ setTimeout(function () {
 function effetZoomSur(id) {
     effetZoomAvecDelaySur(id, 2000);
 }
+
 function effetZoomAvecDelaySur(id, delay) {
     var font_size_original = d3.select(id).style("font-size");
     d3.select(id)
