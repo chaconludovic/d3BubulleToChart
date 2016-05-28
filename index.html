@@ -86,7 +86,7 @@
         </div>
     </div>
     <div class="row">
-        <div id="shuffle"><input name="shuffleButton" type="button" value="Shuffle"/></div>
+        <div id="shuffle"><input class="shuffleButton" name="shuffleButton" type="button" value="Shuffle"/></div>
     </div>
 </div>
 
@@ -389,8 +389,8 @@ function cleanForce() {
 }
 
 function cleanButton() {
-    d3.selectAll(".button")
-            .remove();
+    d3.selectAll(".buttonNext").remove();
+    d3.selectAll(".shuffleButton").remove();
 }
 
 function toChart() {
@@ -451,19 +451,19 @@ function setChartNodes(x, y) {
             })
             .transition()
             .delay(750)
-            .duration(1500)
+            .duration(2000)
             .attr("transform", function (d) {
                 return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
             });
     nodes.selectAll("circle")
             .transition()
             .delay(750)
-            .duration(2000)
+            .duration(3000)
             .attr("r", 2);
     nodes.selectAll(".text")
             .transition()
             .delay(1000)
-            .duration(2500)
+            .duration(3500)
             .attr("dy", "-5")
             .style("font", "18px sans-serif")
             .attr("class", "textInChart");
