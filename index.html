@@ -2,8 +2,10 @@
 <!-- source: http://bl.ocks.org/mbostock/1093130 -->
 <meta charset="utf-8">
 <head>
-    <link href="assets/css/bootstrap.css" rel="stylesheet">
-    <script type="text/javascript" src="d3/d3.js"></script>
+    <link href="assets/css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="assets/css/leaflet/leaflet.css" rel="stylesheet"/>
+    <script src="assets/js/d3/d3.js"></script>
+    <script src="assets/js/leaflet/leaflet.js" type="text/javascript"></script>
 </head>
 <style>
     body {
@@ -79,7 +81,7 @@
     <div class="row">
         <div class="col-lg-2">
             <div id="next">
-                <input name="nextButton" class="buttonNext" type="button" value="next" onclick="toChart()"/>
+                <input name="nextButton" class="buttonNext" type="button" value="next" onclick="next()"/>
             </div>
         </div>
         <div class="col-lg-offset-4 col-lg-6">
@@ -91,7 +93,12 @@
         <div id="shuffle"><input class="shuffleButton" name="shuffleButton" type="button" value="Shuffle"/></div>
     </div>
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-2">
+            <div id="divLegend">
+            </div>
+        </div>
+        <div class="col-lg-10">
+            <div id="map"></div>
             <div id="graphique"></div>
         </div>
     </div>
@@ -112,7 +119,8 @@ var facteurRayon = 4, rayonParDefaut = 4.5;
 
 var MODE = {
     FORCE: "FORCE",
-    CHART: "CHART"
+    CHART: "CHART",
+    REPARTITION: "REPARTITION"
 };
 var mode = MODE.FORCE;
 
@@ -128,38 +136,45 @@ var force = d3.layout.force()
         .size([width, height])
         .on("tick", tick);
 
-var svg = d3.select("#graphique").append("svg")
+var svg = d3.select("#graphique")
+        .append("svg")
+        .attr("id", "mainSvg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
+        .attr("id", "mainG")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var link = svg.selectAll(".link"),
         node = svg.selectAll(".node");
 
-d3.select("#titre")
-        .text("Visualisation  en arborescence")
-        .style("font-weight", "bold")
-        .style("font-size", "14px")
-;
-effetZoomSur("#titre");
-d3.select("#textExplicatif")
-        .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
-                "Representation de la population et de la fiscalité. La valeur pour chaque entitée de la population est représentée par la taille de la bulle." +
-                "La valeur pour chaque entitée de la fiscalité est représentée par la force de la couleur.");
-
 loadForce();
 
+// *****************************************************************************************************************************
+// Next
+// *****************************************************************************************************************************
+
+function next() {
+    if (mode == MODE.FORCE) {
+        toChart();
+    } else if (mode == MODE.CHART) {
+        toMap();
+    }
+}
+
+function cleanNextButton() {
+    d3.selectAll(".buttonNext").remove();
+}
 
 // *****************************************************************************************************************************
 // Force
 // *****************************************************************************************************************************
-
 function loadForce() {
     d3.json("data/data.json", function (error, json) {
         if (error) throw error;
         root = json;
         setForce();
+        setForceTitle();
         addLegend();
     });
 }
@@ -222,6 +237,19 @@ function setForce() {
 
 }
 
+function setForceTitle() {
+    d3.select("#titre")
+            .text("Visualisation  en arborescence")
+            .style("font-weight", "bold")
+            .style("font-size", "14px")
+    ;
+    effetZoomSur("#titre");
+    d3.select("#textExplicatif")
+            .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
+                    "Representation de la population et de la fiscalité. La valeur pour chaque entitée de la population est représentée par la taille de la bulle." +
+                    "La valeur pour chaque entitée de la fiscalité est représentée par la force de la couleur.");
+}
+
 function addToolTipBehaviour(circle) {
     circle
             .on("mouseover", function (d) {
@@ -265,11 +293,369 @@ function addToolTipBehaviour(circle) {
             });
 }
 
+function tick() {
+    link
+            .attr("x1", function (d) {
+                return d.source.x;
+            })
+            .attr("y1", function (d) {
+                return d.source.y;
+            })
+            .attr("x2", function (d) {
+                return d.target.x;
+            })
+            .attr("y2", function (d) {
+                return d.target.y;
+            });
+
+    node.attr("transform", function (d) {
+        return "translate(" + d.x + "," + d.y + ")";
+    });
+}
+
+function color(d) {
+    return d._children ? "#3182bd" // collapsed package
+            : d.children ? "#c6dbef" // expanded package
+            : scale(d); // leaf node
+}
+
+function scale(d) {
+    var f = flatten(d.father);
+    var minFiscalite = d3.min(f, function (node) {
+        return node.fiscalite;
+    });
+    var maxFiscalite = d3.max(f, function (node) {
+        return node.fiscalite;
+    });
+    return rangeColor.domain([minFiscalite, maxFiscalite])(d.fiscalite);
+}
+
+// Toggle children on click.
+function click(d) {
+    if (d3.event.defaultPrevented) return; // ignore drag
+    if (d.children) {
+        d._children = d.children;
+        d.children = null;
+    } else {
+        d.children = d._children;
+        d._children = null;
+    }
+    setForce();
+}
+
+function cleanForce() {
+    d3.selectAll(".node")
+            .filter(function (d) {
+                return d.fiscalite == null && d.population == null
+            })
+            .remove();
+    d3.selectAll(".link").remove();
+}
+
+function cleanShuffleButton() {
+    d3.selectAll(".shuffleButton").remove();
+}
+
+// *****************************************************************************************************************************
+// Chart
+// *****************************************************************************************************************************
+function toChart() {
+    d3.json("data/data.json", function (error, json) {
+        if (error) throw error;
+        root = json;
+        setChart();
+        setChartTitle();
+        cleanForce();
+        cleanLegend();
+        cleanShuffleButton();
+    });
+}
+
+function setChart() {
+    mode = MODE.CHART;
+    var x = d3.scale.linear().range([0, width]);
+    var y = d3.scale.linear().range([height, 0]);
+    var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);
+    var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
+    force.stop();
+
+    var maxFisca = d3.max(flatten(root), function (node) {
+        return node.children ? 0 : node.fiscalite;
+    });
+    x.domain([0, maxFisca]);
+
+    var maxPop = d3.max(flatten(root), function (node) {
+        return node.children ? 0 : node.population;
+    });
+
+    y.domain([0, maxPop]);
+    // add axis
+    addChartAxis(xAxis, yAxis);
+    // animate nodes to their charts destination position
+    setChartNodes(x, y);
+
+}
+
+
+function setChartNodes(x, y) {
+    var nodes = d3.selectAll(".node");
+    nodes
+            .filter(function (d) {
+                return d.fiscalite != null || d.population != null
+            })
+            .transition()
+            .delay(750)
+            .duration(2000)
+            .attr("transform", function (d) {
+                return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
+            });
+    nodes.selectAll("circle")
+            .transition()
+            .delay(750)
+            .duration(3000)
+            .attr("r", 2);
+    nodes.selectAll(".text")
+            .transition()
+            .delay(1000)
+            .duration(3500)
+            .attr("dy", "-5")
+            .style("font", "18px sans-serif")
+            .attr("class", "textInChart");
+}
+
+function setChartTitle() {
+    d3.select("#titre")
+            .transition()
+            .delay(1500)
+            .duration(2000)
+            .text("Visualisation par tableau simple")
+            .style("font-weight", "bold")
+    ;
+    effetZoomSur("#titre");
+    d3.select("#textExplicatif")
+            .transition()
+            .delay(1500)
+            .duration(2000)
+            .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
+                    "Representation de la population et de la fiscalité. " +
+                    "La valeur pour chaque entitée de la population est représentée par l'axe des ordonnées." +
+                    "La valeur pour chaque entitée de la fiscalité est représentée par l'axe des abscisses.")
+    ;
+}
+function addChartAxis(xAxis, yAxis) {
+    svg.append("g") // Add the X Axis
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .transition()
+            .delay(1500)
+            .call(xAxis);
+    svg.append("g")// Add the Y Axis
+            .attr("class", "y axis")
+            .transition()
+            .delay(1500)
+            .call(yAxis);
+    svg.append("text") // text label for the x axis
+            .attr("class", "axisTitle")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom)
+            .style("text-anchor", "middle")
+            .transition()
+            .delay(1500)
+            .text("Fiscalité");
+    svg.append("text")
+            .attr("class", "axisTitle")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - margin.left)
+            .attr("x", 0 - (height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .transition()
+            .delay(1500)
+            .text("Population");
+}
+
+/*
+ ********************************
+ * TOOLS
+ ********************************
+ */
+
+
+// Returns a list of all nodes under the root.
+function flatten(root) {
+    var nodes = [], i = 0;
+
+    function recurse(node) {
+        if (node.children) node.children.forEach(function (child) {
+            child.father = node;
+            recurse(child);
+        });
+        if (!node.id) node.id = ++i;
+        nodes.push(node);
+    }
+
+    recurse(root);
+    return nodes;
+}
+
+function calculateMinMaxFiscalite() {
+    var f = flatten(root);
+    var min = d3.min(f, function (node) {
+        return node.fiscalite;
+    });
+    var max = d3.max(f, function (node) {
+        return node.fiscalite;
+    });
+    return {min: min, max: max};
+}
+function calculateMinMaxPopulation() {
+    var f = flatten(root);
+    var min = d3.min(f, function (node) {
+        return node.population;
+    });
+    var max = d3.max(f, function (node) {
+        return node.population;
+    });
+    return {min: min, max: max};
+}
+
+function effetZoomSur(id) {
+    effetZoomAvecDelaySur(id, 2000);
+}
+
+function effetZoomAvecDelaySur(id, delay) {
+    var font_size_original = d3.select(id).style("font-size");
+    d3.select(id)
+            .transition()
+            .delay(delay)
+            .duration(2000)
+            .style("font-size", "20px")
+    ;
+    d3.select(id)
+            .transition()
+            .delay(delay + 2000)
+            .duration(2000)
+            .style("font-size", font_size_original)
+    ;
+}
+
+function nettoyageAxe() {
+    d3.selectAll(".node").select("text").remove();
+    d3.selectAll(".axis").remove();
+    d3.selectAll(".axisTitle").remove();
+}
+
+// *****************************************************************************************************************************
+// Map
+// *****************************************************************************************************************************
+var premiereFoisPourAnimationNodesDansCarte = true;
+
+function toMap() {
+    d3.json("data/data.json", function (error, json) {
+        if (error) throw error;
+        root = json;
+        nettoyageAxe();
+        setMap();
+        setMapDescription();
+        addLegend();
+        cleanNextButton();
+    });
+}
+
+function setMap() {
+    d3.select("#map").style("width", width + "px").style("height", height + "px");
+    var coordParis = [47.864716, 2.349014];
+    var map = L.map('map').setView(coordParis, 5);
+    mapLink =
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+    L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; ' + mapLink + ' Contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+    /* Initialize the SVG layer */
+    map._initPathRoot()
+
+    /* We simply pick up the SVG from the map object */
+    var svg = d3.select("#map").select("svg");
+    /* Migration des elements du svg précédent dans celui de la carte  */
+    var removed = d3.select("#mainG").remove();
+    svg.append(function () {
+        return removed.node();
+    });
+    d3.select("#mainSvg").remove();
+    var nodes = d3.selectAll(".node");
+    map.on("viewreset", update);
+    update();
+
+    function update() {
+        if (premiereFoisPourAnimationNodesDansCarte) {
+            nodes
+                    .transition()
+                    .delay(750)
+                    .duration(2000).attr("transform",
+                    function (d) {
+                        var x = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lng)).x - margin.left;
+                        var y = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lng)).y - margin.top;
+                        return "translate(" +
+                                x + "," +
+                                y + ")";
+                    });
+            nodes.selectAll("circle")
+                    .transition()
+                    .delay(750)
+                    .duration(3000)
+                    .attr("r", function (d) {
+                        return Math.sqrt(d.population) / facteurRayon || rayonParDefaut;
+                    });
+            premiereFoisPourAnimationNodesDansCarte = false;
+        } else {
+            nodes.attr("transform",
+                    function (d) {
+                        var x = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lng)).x - margin.left;
+                        var y = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lng)).y - margin.top;
+                        return "translate(" +
+                                x + "," +
+                                y + ")";
+                    });
+        }
+    }
+}
+
+function setMapDescription() {
+    d3.select("#titre")
+            .transition()
+            .delay(1500)
+            .duration(2000)
+            .text("Visualisation sur une carte")
+            .style("font-weight", "bold")
+    ;
+    effetZoomSur("#titre");
+    d3.select("#textExplicatif")
+            .transition()
+            .delay(1500)
+            .duration(2000)
+            .text("Visualisation des entités. " +
+                    "Representation de la population et de la fiscalité. " +
+                    "La valeur pour chaque entitée de la population est représentée par la taille de la bulle." +
+                    "La valeur pour chaque entitée de la fiscalité est représentée par la force de la couleur.")
+    ;
+}
+
+// *****************************************************************************************************************************
+// Legend
+// *****************************************************************************************************************************
+
 function addLegend() {
     // add legend
-    svg.append("g")
+    d3.select("#divLegend")
+            .append("svg")
+            .attr("id", "svgLegend")
+            .style("height", height + "px")
+            .append("g")
             .attr("class", "legend")
-            .attr("transform", "translate(50,30)")
+            .attr("transform", "translate(50,50)")
             .style("font-size", "12px")
             .call(legend);
 }
@@ -281,7 +667,7 @@ function legend(lg) {
             .attr("transform", function () {
                 return "translate(" + 0 + "," + 100 + ")";
             })
-            .call(legendPopulation)
+            .call(legendPopulation);
 }
 function legendPopulation(g) {
     var population = g.append("text")
@@ -364,261 +750,13 @@ function legendFiscalite(g) {
             });
 }
 
-function tick() {
-    link
-            .attr("x1", function (d) {
-                return d.source.x;
-            })
-            .attr("y1", function (d) {
-                return d.source.y;
-            })
-            .attr("x2", function (d) {
-                return d.target.x;
-            })
-            .attr("y2", function (d) {
-                return d.target.y;
-            });
-
-    node.attr("transform", function (d) {
-        return "translate(" + d.x + "," + d.y + ")";
-    });
-}
-
-function color(d) {
-    return d._children ? "#3182bd" // collapsed package
-            : d.children ? "#c6dbef" // expanded package
-            : scale(d); // leaf node
-}
-
-function scale(d) {
-    var f = flatten(d.father);
-    var minFiscalite = d3.min(f, function (node) {
-        return node.fiscalite;
-    });
-    var maxFiscalite = d3.max(f, function (node) {
-        return node.fiscalite;
-    });
-    return rangeColor.domain([minFiscalite, maxFiscalite])(d.fiscalite);
-}
-
-// Toggle children on click.
-function click(d) {
-    if (d3.event.defaultPrevented) return; // ignore drag
-    if (d.children) {
-        d._children = d.children;
-        d.children = null;
-    } else {
-        d.children = d._children;
-        d._children = null;
-    }
-    setForce();
-}
-
-function cleanForce() {
-    d3.selectAll(".node")
-            .filter(function (d) {
-                return d.fiscalite == null && d.population == null
-            })
-            .remove();
-    d3.selectAll(".link").remove();
-    d3.selectAll(".legend").remove();
-}
-
-function cleanButton() {
-    d3.selectAll(".buttonNext").remove();
-    d3.selectAll(".shuffleButton").remove();
-}
-
-function toChart() {
-
-    d3.json("data/data.json", function (error, json) {
-        if (error) throw error;
-        root = json;
-        setChart();
-    });
-    /*d3.selectAll("g")
-     .transition()
-     .delay(750)
-     .duration(1500)
-     .attr("transform", function (d, i) {
-     return "translate(" + width / 2 + "," + height / 2 + ")";
-     });
-     d3.selectAll("line").remove();*/
+function cleanLegend() {
+    d3.selectAll("#svgLegend").remove();
 }
 
 // *****************************************************************************************************************************
-// Chart
+// Outils
 // *****************************************************************************************************************************
-
-function setChart() {
-    mode = MODE.CHART;
-    var x = d3.scale.linear().range([0, width]);
-    var y = d3.scale.linear().range([height, 0]);
-    var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);
-    var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
-    force.stop();
-
-    var maxFisca = d3.max(flatten(root), function (node) {
-        return node.children ? 0 : node.fiscalite;
-    });
-    x.domain([0, maxFisca]);
-
-    var maxPop = d3.max(flatten(root), function (node) {
-        return node.children ? 0 : node.population;
-    });
-
-    y.domain([0, maxPop]);
-    // re write title/text
-    setChartTitle();
-    // add axis
-    addChartAxis(xAxis, yAxis);
-    // animate nodes to their charts destination position
-    setChartNodes(x, y);
-    // cleaning
-    cleanForce();
-    cleanButton();
-}
-
-
-function setChartNodes(x, y) {
-    var nodes = d3.selectAll(".node");
-    nodes
-            .filter(function (d) {
-                return d.fiscalite != null || d.population != null
-            })
-            .transition()
-            .delay(750)
-            .duration(2000)
-            .attr("transform", function (d) {
-                return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
-            });
-    nodes.selectAll("circle")
-            .transition()
-            .delay(750)
-            .duration(3000)
-            .attr("r", 2);
-    nodes.selectAll(".text")
-            .transition()
-            .delay(1000)
-            .duration(3500)
-            .attr("dy", "-5")
-            .style("font", "18px sans-serif")
-            .attr("class", "textInChart");
-}
-
-function setChartTitle() {
-    d3.select("#titre")
-            .transition()
-            .delay(1500)
-            .duration(2000)
-            .text("Visualisation par tableau simple")
-            .style("font-weight", "bold")
-    ;
-    effetZoomSur("#titre");
-    d3.select("#textExplicatif")
-            .transition()
-            .delay(1500)
-            .duration(2000)
-            .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
-                    "Representation de la population et de la fiscalité. " +
-                    "La valeur pour chaque entitée de la population est représentée par l'axe des ordonnées." +
-                    "La valeur pour chaque entitée de la fiscalité est représentée par l'axe des abscisses.")
-    ;
-}
-function addChartAxis(xAxis, yAxis) {
-    svg.append("g") // Add the X Axis
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .transition()
-            .delay(1500)
-            .call(xAxis);
-    svg.append("g")// Add the Y Axis
-            .attr("class", "y axis")
-            .transition()
-            .delay(1500)
-            .call(yAxis);
-    svg.append("text") // text label for the x axis
-            .attr("x", width / 2)
-            .attr("y", height + margin.bottom)
-            .style("text-anchor", "middle")
-            .transition()
-            .delay(1500)
-            .text("Fiscalité");
-    svg.append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left)
-            .attr("x", 0 - (height / 2))
-            .attr("dy", "1em")
-            .style("text-anchor", "middle")
-            .transition()
-            .delay(1500)
-            .text("Population");
-}
-
-/*
- ********************************
- * TOOLS
- ********************************
- */
-
-
-// Returns a list of all nodes under the root.
-function flatten(root) {
-    var nodes = [], i = 0;
-
-    function recurse(node) {
-        if (node.children) node.children.forEach(function (child) {
-            child.father = node;
-            recurse(child);
-        });
-        if (!node.id) node.id = ++i;
-        nodes.push(node);
-    }
-
-    recurse(root);
-    return nodes;
-}
-
-function calculateMinMaxFiscalite() {
-    var f = flatten(root);
-    var min = d3.min(f, function (node) {
-        return node.fiscalite;
-    });
-    var max = d3.max(f, function (node) {
-        return node.fiscalite;
-    });
-    return {min: min, max: max};
-}
-function calculateMinMaxPopulation() {
-    var f = flatten(root);
-    var min = d3.min(f, function (node) {
-        return node.population;
-    });
-    var max = d3.max(f, function (node) {
-        return node.population;
-    });
-    return {min: min, max: max};
-}
-
-function effetZoomSur(id) {
-    effetZoomAvecDelaySur(id, 2000);
-}
-
-function effetZoomAvecDelaySur(id, delay) {
-    var font_size_original = d3.select(id).style("font-size");
-    d3.select(id)
-            .transition()
-            .delay(delay)
-            .duration(2000)
-            .style("font-size", "20px")
-    ;
-    d3.select(id)
-            .transition()
-            .delay(delay + 2000)
-            .duration(2000)
-            .style("font-size", font_size_original)
-    ;
-}
 
 
 </script>

@@ -8,31 +8,41 @@
                     "name": "CC 1",
                     "population": 3938,
                     "fiscalite": 8756,
-                    "detail": "Ville de azefrggth"
+                    "detail": "Ville de azefrggth",
+                    "lat": 45.9833,
+                    "lng": 5.8167
                 },
                 {
                     "name": "CC 2",
                     "population": 5345,
                     "fiscalite": 5435,
-                    "detail": "Ville de qdcvcdc"
+                    "detail": "Ville de qdcvcdc",
+                    "lat": 45.283,
+                    "lng": 5.1667
                 },
                 {
                     "name": "CC 3",
                     "population": 5455,
                     "fiscalite": 9876,
-                    "detail": "Ville de rttefrcds"
+                    "detail": "Ville de rttefrcds",
+                    "lat": 45.3,
+                    "lng": 3.933
                 },
                 {
                     "name": "CC 4",
                     "population": 2342,
                     "fiscalite": 678,
-                    "detail": "Ville de trezfgde"
+                    "detail": "Ville de trezfgde",
+                    "lat": 45.5,
+                    "lng": 1.533
                 },
                 {
                     "name": "CC 5",
                     "population": 8898,
                     "fiscalite": 567,
-                    "detail": "Ville de zerfdfdfmkdjfokzofozreofoerhoforerjforjovgfde"
+                    "detail": "Ville de zerfdfdfmkdjfokzofozreofoerhoforerjforjovgfde",
+                    "lat": 46.9,
+                    "lng": 2.833
                 }
             ]
         },
@@ -43,31 +53,41 @@
                     "name": "CA 1",
                     "population": 5555,
                     "fiscalite": 1432,
-                    "detail": "Ville de iuytredc"
+                    "detail": "Ville de iuytredc",
+                    "lat": 48.4716,
+                    "lng": 2.9014
                 },
                 {
                     "name": "CA 2",
                     "population": 6454,
                     "fiscalite": 15343,
-                    "detail": "Ville de poijhgrd"
+                    "detail": "Ville de poijhgrd",
+                    "lat": 50.629250,
+                    "lng": 3.057256
                 },
                 {
                     "name": "CA 3",
                     "population": 4543,
                     "fiscalite": 1437,
-                    "detail": "Ville de ezqsdfgb"
+                    "detail": "Ville de ezqsdfgb",
+                    "lat": 46,
+                    "lng": 5.5
                 },
                 {
                     "name": "CA 4",
                     "population": 7656,
                     "fiscalite": 15449,
-                    "detail": "Ville de ythgfc"
+                    "detail": "Ville de ythgfc",
+                    "lat": 45.33,
+                    "lng": 2.3345
                 },
                 {
                     "name": "CA 5",
                     "population": 2354,
                     "fiscalite": 22345,
-                    "detail": "Ville de blablablablabla"
+                    "detail": "Ville de blablablablabla",
+                    "lat": 44.865,
+                    "lng": 1.6523
                 }
             ]
         },
@@ -78,85 +98,113 @@
                     "name": "CO 1",
                     "population": 5555,
                     "fiscalite": 4312,
-                    "detail": "Ville de sdfghnbvd"
+                    "detail": "Ville de sdfghnbvd",
+                    "lat": 46.667,
+                    "lng": 5.833
                 },
                 {
                     "name": "CO 2",
                     "population": 6544,
                     "fiscalite": 15444,
-                    "detail": "Ville de hgfvcsx"
+                    "detail": "Ville de hgfvcsx",
+                    "lat": 48.234,
+                    "lng": 2.633
                 },
                 {
                     "name": "CO 3",
                     "population": 3453,
                     "fiscalite": 34517,
-                    "detail": "Ville de zerfdc"
+                    "detail": "Ville de zerfdc",
+                    "lat": 46.9563,
+                    "lng": 5.423
                 },
                 {
                     "name": "CO 4",
                     "population": 7656,
                     "fiscalite": 19324,
-                    "detail": "Ville de qsdfgh"
+                    "detail": "Ville de qsdfgh",
+                    "lat": 45.343,
+                    "lng": 2.783
                 },
                 {
                     "name": "CO 5",
                     "population": 6543,
                     "fiscalite": 25234,
-                    "detail": "Ville de jtrfcxw"
+                    "detail": "Ville de jtrfcxw",
+                    "lat": 47.2183713,
+                    "lng": -1.553621
                 },
                 {
                     "name": "CO 6",
                     "population": 8765,
                     "fiscalite": 12343,
-                    "detail": "Ville de redfc"
+                    "detail": "Ville de redfc",
+                    "lat": 47.667,
+                    "lng": 4.9666
                 },
                 {
                     "name": "CO 7",
                     "population": 2367,
                     "fiscalite": 34654,
-                    "detail": "Ville de trfvcx"
+                    "detail": "Ville de trfvcx",
+                    "lat": 46.333,
+                    "lng": 5.3323
                 },
                 {
                     "name": "CO 8",
                     "population": 4589,
                     "fiscalite": 34678,
-                    "detail": "Ville de zertyukjhgfd"
+                    "detail": "Ville de zertyukjhgfd",
+                    "lat": 48.36667,
+                    "lng": 6.517
                 },
                 {
                     "name": "CO 9",
                     "population": 2298,
                     "fiscalite": 43456,
-                    "detail": "Ville de dffdc"
+                    "detail": "Ville de dffdc",
+                    "lat": 43.8167,
+                    "lng": 0.95
                 },
                 {
                     "name": "CO 10",
                     "population": 8543,
                     "fiscalite": 25234,
-                    "detail": "Ville de defgbggr"
+                    "detail": "Ville de defgbggr",
+                    "lat": 49.182863,
+                    "lng": -0.370679
                 },
                 {
                     "name": "CO 11",
                     "population": 3765,
                     "fiscalite": 12343,
-                    "detail": "Ville de dfbvdfvdfv"
+                    "detail": "Ville de dfbvdfvdfv",
+                    "lat": 45.5,
+                    "lng": 1.66467
                 },
                 {
                     "name": "CO 12",
                     "population": 7367,
                     "fiscalite": 34654,
-                    "detail": "Ville de jgbsdcdfs"
+                    "detail": "Ville de jgbsdcdfs",
+                    "lat": 43.296482,
+                    "lng": 5.369780
                 },
                 {
                     "name": "CO 13",
                     "population": 3589,
                     "fiscalite": 36678,
-                    "detail": "Ville de sddfv"
+                    "detail": "Ville de sddfv",
+                    "lat": 44.837789,
+                    "lng": -0.579180
                 },
                 {
                     "name": "CO 14",
                     "population": 3298,
                     "fiscalite": 45456,
-                    "detail": "Ville de dbgrh"
+                    "detail": "Ville de dbgrh",
+                    "lat": 44.4,
+                    "lng": 5.766667
                 }
             ]
         }
