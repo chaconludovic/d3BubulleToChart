@@ -119,11 +119,11 @@ var margin = {top: 30, right: 20, bottom: 30, left: 60}, width = 960 - margin.le
 var facteurRayon = 4, rayonParDefaut = 4.5;
 
 var MODE = {
-    FORCE: "FORCE",
+    BUBBLE_CHART: "BUBBLE_CHART",
     CHART: "CHART",
     REPARTITION: "REPARTITION"
 };
-var mode = MODE.FORCE;
+var mode = MODE.BUBBLE_CHART;
 
 var tooltip = d3.select("body")
         .append("div")
@@ -149,14 +149,14 @@ var svg = d3.select("#graphique")
 var link = svg.selectAll(".link"),
         node = svg.selectAll(".node");
 
-loadForce();
+loadBubbleChart();
 
 // *****************************************************************************************************************************
 // Next
 // *****************************************************************************************************************************
 
 function next() {
-    if (mode == MODE.FORCE) {
+    if (mode == MODE.BUBBLE_CHART) {
         toChart();
     } else if (mode == MODE.CHART) {
         toMap();
@@ -168,18 +168,18 @@ function cleanNextButton() {
 }
 
 // *****************************************************************************************************************************
-// Force
+// Bubble Chart
 // *****************************************************************************************************************************
-function loadForce() {
+function loadBubbleChart() {
     d3.json("data/data.json", function (error, json) {
         if (error) throw error;
         root = json;
-        setForce();
-        setForceTitle();
+        setBubbleChart();
+        setBubbleChartTitle();
         addLegend();
     });
 }
-function setForce() {
+function setBubbleChart() {
 
     var nodes = flatten(root),
             links = d3.layout.tree().links(nodes);
@@ -238,7 +238,7 @@ function setForce() {
 
 }
 
-function setForceTitle() {
+function setBubbleChartTitle() {
     d3.select("#titre")
             .text("Visualisation  en arborescence")
             .style("font-weight", "bold")
@@ -261,7 +261,7 @@ function addToolTipBehaviour(circle) {
                             .duration(200)
                             .style("opacity", .9);
                 }
-                if (mode == MODE.FORCE) {
+                if (mode == MODE.BUBBLE_CHART) {
                     d3.select("#detailEntite")
                             .style("opacity", .9)
                             .attr("class", "detailEntite")
@@ -284,7 +284,7 @@ function addToolTipBehaviour(circle) {
                 tooltip.transition()
                         .duration(500)
                         .style("opacity", 0);
-                if (mode == MODE.FORCE) {
+                if (mode == MODE.BUBBLE_CHART) {
                     d3.select("#detailEntite")
                             .style("opacity", 0)
                             .text("");
@@ -343,10 +343,10 @@ function click(d) {
         d.children = d._children;
         d._children = null;
     }
-    setForce();
+    setBubbleChart();
 }
 
-function cleanForce() {
+function cleanBubbleChart() {
     d3.selectAll(".node")
             .filter(function (d) {
                 return d.fiscalite == null && d.population == null
@@ -368,7 +368,7 @@ function toChart() {
         root = json;
         setChart();
         setChartTitle();
-        cleanForce();
+        cleanBubbleChart();
         cleanLegend();
         cleanShuffleButton();
     });
@@ -390,7 +390,6 @@ function setChart() {
     var maxPop = d3.max(flatten(root), function (node) {
         return node.children ? 0 : node.population;
     });
-
     y.domain([0, maxPop]);
     // add axis
     addChartAxis(xAxis, yAxis);
@@ -398,7 +397,6 @@ function setChart() {
     setChartNodes(x, y);
 
 }
-
 
 function setChartNodes(x, y) {
     var nodes = d3.selectAll(".node");
