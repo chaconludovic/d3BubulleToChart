@@ -84,7 +84,7 @@
                 <input name="nextButton" class="buttonNext" type="button" value="next" onclick="next()"/>
             </div>
         </div>
-        <div class="col-lg-offset-4 col-lg-6">
+        <div class="col-lg-offset-1 col-lg-6">
             <div id="titre"></div>
             <div id="textExplicatif"></div>
         </div>
@@ -121,7 +121,7 @@ var facteurRayon = 4, rayonParDefaut = 4.5;
 var MODE = {
     BUBBLE_CHART: "BUBBLE_CHART",
     CHART: "CHART",
-    REPARTITION: "REPARTITION"
+    MAP: "MAP"
 };
 var mode = MODE.BUBBLE_CHART;
 
@@ -347,6 +347,12 @@ function click(d) {
 }
 
 function cleanBubbleChart() {
+    // stop force behaviour
+    force.stop();
+    // stop force click behaviour
+    force.on("tick", null);
+    d3.selectAll(".node").on("click", null);
+    // cleaning
     d3.selectAll(".node")
             .filter(function (d) {
                 return d.fiscalite == null && d.population == null
@@ -380,7 +386,6 @@ function setChart() {
     var y = d3.scale.linear().range([height, 0]);
     var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);
     var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
-    force.stop();
 
     var maxFisca = d3.max(flatten(root), function (node) {
         return node.children ? 0 : node.fiscalite;
@@ -563,6 +568,7 @@ function toMap() {
 }
 
 function setMap() {
+    mode = MODE.MAP;
     d3.select("#map").style("width", width + "px").style("height", height + "px");
     var coordParis = [47.864716, 2.349014];
     var map = L.map('map').setView(coordParis, 5);
