@@ -3,9 +3,9 @@ var spec = {
         top: 30, right: 20, bottom: 30, left: 60
     },
     width: 960,
-    height: 500,
+    height: 600,
     circleData: {
-        facteurRayon: 4, rayonParDefaut: 4.5
+        facteurRayon: 15, rayonParDefaut: 4.5
     },
     transition: {
         delai1: 750, delai2: 1000, delai3: 1500,
@@ -14,7 +14,7 @@ var spec = {
         duration3: 2000, duration4: 3000, duration5: 3500
     },
     force: {
-        linkDistance: 80, charge: -120, gravity: .05
+        linkDistance: 75, charge: -180, gravity: .05
     },
     map: {
         coordParis: [47.864716, 2.349014], zoom: 5
@@ -607,7 +607,7 @@ function legendPopulation(g) {
             return "translate(" + 25 + "," + 20 + ")";
         })
         .attr("r", function () {
-            return Math.sqrt(min) / 5 || 4.5
+            return Math.sqrt(min) / spec.circleData.facteurRayon || 4.5
         });
     g.append("circle")
         .attr("class", "circleLegend")
@@ -615,7 +615,7 @@ function legendPopulation(g) {
             return "translate(" + 25 + "," + 50 + ")";
         })
         .attr("r", function () {
-            return Math.sqrt(max) / 5 || 4.5
+            return Math.sqrt(max) / spec.circleData.facteurRayon || 4.5
         })
     // update legend circle style
     d3.selectAll(".circleLegend")
