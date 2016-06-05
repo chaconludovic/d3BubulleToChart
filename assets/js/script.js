@@ -1,3 +1,26 @@
+var spec = {
+    margin: {
+        top: 30, right: 20, bottom: 30, left: 60
+    },
+    width: 960,
+    height: 500,
+    circleData: {
+        facteurRayon: 4, rayonParDefaut: 4.5
+    },
+    transition: {
+        delai1: 750, delai2: 1000, delai3: 1500,
+        delai4: 3000, delai5: 5000,
+        duration1: 200, duration2: 500,
+        duration3: 2000, duration4: 3000, duration5: 3500
+    },
+    force: {
+        linkDistance: 80, charge: -120, gravity: .05
+    },
+    map: {
+        coordParis: [47.864716, 2.349014], zoom: 5
+    }
+};
+
 var colorBrewer = new ColorBrewer();
 var windowInformation = new WindowInformation();
 
@@ -39,7 +62,7 @@ function cleanNextButton() {
 // *****************************************************************************************************************************
 
 function BubbleChart() {
-    this.circleData = {facteurRayon: 4, rayonParDefaut: 4.5};
+    this.circleData = spec.circleData;
 }
 
 var bubbleChart = new BubbleChart();
@@ -50,9 +73,9 @@ var tooltip = d3.select("body")
     .style("opacity", 0);
 
 var force = d3.layout.force()
-    .linkDistance(80)
-    .charge(-120)
-    .gravity(.05)
+    .linkDistance(spec.force.linkDistance)
+    .charge(spec.force.charge)
+    .gravity(spec.force.gravity)
     .size([windowInformation.width, windowInformation.height])
     .on("tick", tick);
 
@@ -152,7 +175,7 @@ function addToolTipBehaviour(circle) {
         .on("mouseover", function (d) {
             if (d.children == undefined) {
                 tooltip.transition()
-                    .duration(200)
+                    .duration(spec.transition.duration1)
                     .style("opacity", .9);
             }
             if (mode == MODE.BUBBLE_CHART) {
@@ -176,7 +199,7 @@ function addToolTipBehaviour(circle) {
         })
         .on("mouseout", function () {
             tooltip.transition()
-                .duration(500)
+                .duration(spec.transition.duration2)
                 .style("opacity", 0);
             if (mode == MODE.BUBBLE_CHART) {
                 d3.select("#detailEntite")
@@ -301,20 +324,20 @@ function setChartNodes(x, y) {
             return d.fiscalite != null || d.population != null
         })
         .transition()
-        .delay(750)
-        .duration(2000)
+        .delay(spec.transition.delai1)
+        .duration(spec.transition.duration3)
         .attr("transform", function (d) {
             return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
         });
     nodes.selectAll("circle")
         .transition()
-        .delay(750)
-        .duration(3000)
+        .delay(spec.transition.delai1)
+        .duration(spec.transition.duration4)
         .attr("r", 2);
     nodes.selectAll(".text")
         .transition()
-        .delay(1000)
-        .duration(3500)
+        .delay(spec.transition.delai2)
+        .duration(spec.transition.duration5)
         .attr("dy", "-5")
         .style("font", "18px sans-serif")
         .attr("class", "textInChart");
@@ -323,16 +346,16 @@ function setChartNodes(x, y) {
 function setChartTitle() {
     d3.select("#titre")
         .transition()
-        .delay(1500)
-        .duration(2000)
+        .delay(spec.transition.delai3)
+        .duration(spec.transition.duration3)
         .text("Visualisation par tableau simple")
         .style("font-weight", "bold")
     ;
     effetZoomSur("#titre");
     d3.select("#textExplicatif")
         .transition()
-        .delay(1500)
-        .duration(2000)
+        .delay(spec.transition.delai3)
+        .duration(spec.transition.duration3)
         .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
             "Representation de la population et de la fiscalité. " +
             "La valeur pour chaque entitée de la population est représentée par l'axe des ordonnées." +
@@ -344,12 +367,12 @@ function addChartAxis(xAxis, yAxis) {
         .attr("class", "x axis")
         .attr("transform", "translate(0," + windowInformation.height + ")")
         .transition()
-        .delay(1500)
+        .delay(spec.transition.delai3)
         .call(xAxis);
     svgBubbleAndChart.append("g")// Add the Y Axis
         .attr("class", "y axis")
         .transition()
-        .delay(1500)
+        .delay(spec.transition.delai3)
         .call(yAxis);
     svgBubbleAndChart.append("text") // text label for the x axis
         .attr("class", "axisTitle")
@@ -357,7 +380,7 @@ function addChartAxis(xAxis, yAxis) {
         .attr("y", windowInformation.height + windowInformation.margin.bottom)
         .style("text-anchor", "middle")
         .transition()
-        .delay(1500)
+        .delay(spec.transition.delai3)
         .text("Fiscalité");
     svgBubbleAndChart.append("text")
         .attr("class", "axisTitle")
@@ -367,7 +390,7 @@ function addChartAxis(xAxis, yAxis) {
         .attr("dy", "1em")
         .style("text-anchor", "middle")
         .transition()
-        .delay(1500)
+        .delay(spec.transition.delai3)
         .text("Population");
 }
 
@@ -417,7 +440,7 @@ function calculateMinMaxPopulation() {
 }
 
 function effetZoomSur(id) {
-    effetZoomAvecDelaySur(id, 2000);
+    effetZoomAvecDelaySur(id, spec.transition.delai3);
 }
 
 function effetZoomAvecDelaySur(id, delay) {
@@ -425,13 +448,13 @@ function effetZoomAvecDelaySur(id, delay) {
     d3.select(id)
         .transition()
         .delay(delay)
-        .duration(2000)
+        .duration(spec.transition.duration3)
         .style("font-size", "20px")
     ;
     d3.select(id)
         .transition()
         .delay(delay + 2000)
-        .duration(2000)
+        .duration(spec.transition.duration3)
         .style("font-size", font_size_original)
     ;
 }
@@ -456,8 +479,7 @@ function toMap() {
 function setMap() {
     mode = MODE.MAP;
     d3.select("#map").style("width", windowInformation.width + "px").style("height", windowInformation.height + "px");
-    var coordParis = [47.864716, 2.349014];
-    var map = L.map('map').setView(coordParis, 5);
+    var map = L.map('map').setView(spec.map.coordParis, spec.map.zoom);
     mapLink =
         '<a href="http://openstreetmap.org">OpenStreetMap</a>';
     L.tileLayer(
@@ -494,8 +516,8 @@ function setMap() {
     });
     nodes
         .transition()
-        .delay(750)
-        .duration(2000)
+        .delay(spec.transition.delai1)
+        .duration(spec.transition.duration3)
         .attr("transform",
         function (d) {
             var x = map.latLngToLayerPoint(new L.LatLng(d.lat, d.lng)).x - windowInformation.margin.left;
@@ -506,32 +528,28 @@ function setMap() {
         });
     nodes.selectAll("circle")
         .transition()
-        .delay(750)
-        .duration(3000)
+        .delay(spec.transition.delai1)
+        .duration(spec.transition.duration4)
         .attr("r", function (d) {
             return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
         });
     d3.selectAll(".node")
         .selectAll("text")
         .transition()
-        .delay(1000)
-        .duration(3500)
+        .delay(spec.transition.delai2)
+        .duration(spec.transition.duration4)
         .style("font-size", "0px")
 }
 
 function setMapTitle() {
     d3.select("#titre")
-        .transition()
-        .delay(1500)
-        .duration(2000)
         .text("Visualisation sur une carte")
         .style("font-weight", "bold")
     ;
-    effetZoomSur("#titre");
     d3.select("#textExplicatif")
         .transition()
-        .delay(1500)
-        .duration(2000)
+        .delay(spec.transition.delai3)
+        .duration(spec.transition.duration3)
         .text("Visualisation des entités. " +
             "Representation de la population et de la fiscalité. " +
             "La valeur pour chaque entitée de la population est représentée par la taille de la bulle." +
@@ -569,7 +587,7 @@ function legendPopulation(g) {
     var population = g.append("text")
         .attr("id", "idPopulationTextLegende")
         .text("Population");
-    effetZoomAvecDelaySur("#" + population.attr("id"), 3000);
+    effetZoomAvecDelaySur("#" + population.attr("id"), spec.transition.delai4);
     var minMax = calculateMinMaxPopulation();
     var min = minMax.min;
     var max = minMax.max;
@@ -616,7 +634,7 @@ function legendFiscalite(g) {
     var fiscaliteText = g.append("text")
         .attr("id", "idFiscaliteTextLegende")
         .text("Fiscalite");
-    effetZoomAvecDelaySur("#" + fiscaliteText.attr("id"), 5000);
+    effetZoomAvecDelaySur("#" + fiscaliteText.attr("id"), spec.transition.delai5);
     fiscaliteText
         .attr("transform", function () {
             return "translate(" + 0 + "," + (-20) + ")";
@@ -661,9 +679,9 @@ function ColorBrewer() {
 }
 
 function WindowInformation() {
-    this.margin = {top: 30, right: 20, bottom: 30, left: 60}
-    this.width = 960 - this.margin.left - this.margin.right
-    this.height = 500 - this.margin.top - this.margin.bottom;
+    this.margin = spec.margin
+    this.width = spec.width - this.margin.left - this.margin.right
+    this.height = spec.height - this.margin.top - this.margin.bottom;
 
     this.svgWidth = this.width + this.margin.left + this.margin.right;
     this.svgHeight = this.height + this.margin.top + this.margin.bottom;
