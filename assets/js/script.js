@@ -2,7 +2,7 @@ var colorBrewer = new ColorBrewer();
 var windowInformation = new WindowInformation();
 
 var root;
-var facteurRayon = 4, rayonParDefaut = 4.5;
+var svgBubbleAndChart;
 
 var MODE = {
     BUBBLE_CHART: "BUBBLE_CHART",
@@ -11,31 +11,12 @@ var MODE = {
 };
 var mode = MODE.BUBBLE_CHART;
 
-var tooltip = d3.select("body")
-    .append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
-
-var force = d3.layout.force()
-    .linkDistance(80)
-    .charge(-120)
-    .gravity(.05)
-    .size([windowInformation.width, windowInformation.height])
-    .on("tick", tick);
-
-var svg = d3.select("#graphique")
-    .append("svg")
-    .attr("id", "mainSvg")
-    .attr("width", windowInformation.svgWidth)
-    .attr("height", windowInformation.svgHeight)
-    .append("g")
-    .attr("id", "mainG")
-    .attr("transform", "translate(" + windowInformation.margin.left + "," + windowInformation.margin.top + ")");
-
-var link = svg.selectAll(".link"),
-    node = svg.selectAll(".node");
-
-loadBubbleChart();
+// chargement de l'animation
+d3.json("data/data.json", function (error, json) {
+    if (error) throw error;
+    root = json;
+    loadBubbleChart();
+});
 
 // *****************************************************************************************************************************
 // Next
@@ -56,17 +37,44 @@ function cleanNextButton() {
 // *****************************************************************************************************************************
 // Bubble Chart
 // *****************************************************************************************************************************
-function loadBubbleChart() {
-    d3.json("data/data.json", function (error, json) {
-        if (error) throw error;
-        root = json;
-        setBubbleChart();
-        setBubbleChartTitle();
-        addLegend();
-    });
-}
-function setBubbleChart() {
 
+function BubbleChart() {
+    this.circleData = {facteurRayon: 4, rayonParDefaut: 4.5};
+}
+
+var bubbleChart = new BubbleChart();
+
+var tooltip = d3.select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+var force = d3.layout.force()
+    .linkDistance(80)
+    .charge(-120)
+    .gravity(.05)
+    .size([windowInformation.width, windowInformation.height])
+    .on("tick", tick);
+
+svgBubbleAndChart = d3.select("#graphique")
+    .append("svg")
+    .attr("id", "mainSvg")
+    .attr("width", windowInformation.svgWidth)
+    .attr("height", windowInformation.svgHeight)
+    .append("g")
+    .attr("id", "mainG")
+    .attr("transform", "translate(" + windowInformation.margin.left + "," + windowInformation.margin.top + ")");
+
+var link = svgBubbleAndChart.selectAll(".link"),
+    node = svgBubbleAndChart.selectAll(".node");
+
+function loadBubbleChart() {
+    setBubbleChart();
+    setBubbleChartTitle();
+    addLegend();
+}
+
+function setBubbleChart() {
     var nodes = flatten(root),
         links = d3.layout.tree().links(nodes);
     // Restart the force layout.
@@ -108,7 +116,7 @@ function setBubbleChart() {
 
     nodeEnter.append("circle")
         .attr("r", function (d) {
-            return Math.sqrt(d.population) / facteurRayon || rayonParDefaut;
+            return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
         });
 
     nodeEnter.append("text")
@@ -256,15 +264,11 @@ function cleanShuffleButton() {
 // Chart
 // *****************************************************************************************************************************
 function toChart() {
-    d3.json("data/data.json", function (error, json) {
-        if (error) throw error;
-        root = json;
-        setChart();
-        setChartTitle();
-        cleanBubbleChart();
-        cleanLegend();
-        cleanShuffleButton();
-    });
+    setChart();
+    setChartTitle();
+    cleanBubbleChart();
+    cleanLegend();
+    cleanShuffleButton();
 }
 
 function setChart() {
@@ -336,18 +340,18 @@ function setChartTitle() {
     ;
 }
 function addChartAxis(xAxis, yAxis) {
-    svg.append("g") // Add the X Axis
+    svgBubbleAndChart.append("g") // Add the X Axis
         .attr("class", "x axis")
         .attr("transform", "translate(0," + windowInformation.height + ")")
         .transition()
         .delay(1500)
         .call(xAxis);
-    svg.append("g")// Add the Y Axis
+    svgBubbleAndChart.append("g")// Add the Y Axis
         .attr("class", "y axis")
         .transition()
         .delay(1500)
         .call(yAxis);
-    svg.append("text") // text label for the x axis
+    svgBubbleAndChart.append("text") // text label for the x axis
         .attr("class", "axisTitle")
         .attr("x", windowInformation.width / 2)
         .attr("y", windowInformation.height + windowInformation.margin.bottom)
@@ -355,7 +359,7 @@ function addChartAxis(xAxis, yAxis) {
         .transition()
         .delay(1500)
         .text("Fiscalité");
-    svg.append("text")
+    svgBubbleAndChart.append("text")
         .attr("class", "axisTitle")
         .attr("transform", "rotate(-90)")
         .attr("y", 0 - windowInformation.margin.left)
@@ -433,7 +437,6 @@ function effetZoomAvecDelaySur(id, delay) {
 }
 
 function nettoyageAxe() {
-    d3.selectAll(".node").select("text").remove();
     d3.selectAll(".axis").remove();
     d3.selectAll(".axisTitle").remove();
 }
@@ -443,15 +446,11 @@ function nettoyageAxe() {
 // *****************************************************************************************************************************
 
 function toMap() {
-    d3.json("data/data.json", function (error, json) {
-        if (error) throw error;
-        root = json;
-        nettoyageAxe();
-        setMap();
-        setMapTitle();
-        addLegend();
-        cleanNextButton();
-    });
+    nettoyageAxe();
+    setMap();
+    setMapTitle();
+    addLegend();
+    cleanNextButton();
 }
 
 function setMap() {
@@ -487,7 +486,11 @@ function setMap() {
                 return "translate(" +
                     x + "," +
                     y + ")";
-            })
+            });
+        nodes.selectAll("circle").attr("r", function (d) {
+            return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
+        });
+
     });
     nodes
         .transition()
@@ -506,8 +509,14 @@ function setMap() {
         .delay(750)
         .duration(3000)
         .attr("r", function (d) {
-            return Math.sqrt(d.population) / facteurRayon || rayonParDefaut;
+            return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
         });
+    d3.selectAll(".node")
+        .selectAll("text")
+        .transition()
+        .delay(1000)
+        .duration(3500)
+        .style("font-size", "0px")
 }
 
 function setMapTitle() {
