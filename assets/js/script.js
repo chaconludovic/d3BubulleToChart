@@ -149,9 +149,9 @@ function setBubbleChart() {
             return d.name;
         });
 
-    var circle = node.select("circle")
+    node.selectAll("circle")
         .style("fill", color);
-    addToolTipBehaviour(circle);
+    addToolTipBehaviourOnCircle();
 
 }
 
@@ -168,8 +168,9 @@ function setBubbleChartTitle() {
             "La valeur pour chaque entitée de la fiscalité est représentée par la force de la couleur.");
 }
 
-function addToolTipBehaviour(circle) {
-    circle.filter(function (d) {
+function addToolTipBehaviourOnCircle() {
+    var circles = node.selectAll("circle");
+    circles.filter(function (d) {
         return d.fiscalite != null && d.population != null
     })
         .on("mouseover", function (d) {
@@ -178,12 +179,10 @@ function addToolTipBehaviour(circle) {
                     .duration(spec.transition.duration1)
                     .style("opacity", .9);
             }
-            if (mode == MODE.BUBBLE_CHART) {
-                d3.select("#detailEntite")
-                    .style("opacity", .9)
-                    .attr("class", "detailEntite")
-                    .html("Detail de l'entité: " + "<br/>" + d.detail)
-            }
+            d3.select("#detailEntite")
+                .style("opacity", .9)
+                .attr("class", "detailEntite")
+                .html("Detail de l'entité: " + "<br/>" + d.detail)
         })
         .on("mousemove", function (d) {
             if (d.children == undefined) {
@@ -201,16 +200,25 @@ function addToolTipBehaviour(circle) {
             tooltip.transition()
                 .duration(spec.transition.duration2)
                 .style("opacity", 0);
-            if (mode == MODE.BUBBLE_CHART) {
-                d3.select("#detailEntite")
-                    .style("opacity", 0)
-                    .text("");
-            }
+            d3.select("#detailEntite")
+                .style("opacity", 0)
+                .text("");
         })
         .on("mousedown", function () {
             tooltip
                 .style("opacity", 0);
         });
+}
+
+function removeToolTipBehaviourOnCircles() {
+    var circles = node.selectAll("circle");
+    circles.filter(function (d) {
+        return d.fiscalite != null && d.population != null
+    })
+        .on("mouseover", null)
+        .on("mousemove", null)
+        .on("mouseout", null)
+        .on("mousedown", null);
 }
 
 function tick() {
@@ -292,6 +300,7 @@ function toChart() {
     cleanBubbleChart();
     cleanLegend();
     cleanShuffleButton();
+    removeToolTipBehaviourOnCircles();
 }
 
 function setChart() {
@@ -533,6 +542,7 @@ function setMap() {
         .attr("r", function (d) {
             return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
         });
+    addToolTipBehaviourOnCircle();
     d3.selectAll(".node")
         .selectAll("text")
         .transition()
