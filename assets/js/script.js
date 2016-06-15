@@ -5,7 +5,7 @@ var spec = {
     width: 960,
     height: 600,
     circleData: {
-        facteurRayon: 15, rayonParDefaut: 4.5
+        facteurRayon: 20, rayonParDefaut: 4
     },
     transition: {
         delai1: 750, delai2: 1000, delai3: 1500,
@@ -14,7 +14,7 @@ var spec = {
         duration3: 2000, duration4: 3000, duration5: 3500
     },
     force: {
-        linkDistance: 75, charge: -180, gravity: .05
+        linkDistance: 150, charge: -180, gravity: .05
     },
     map: {
         coordParis: [47.864716, 2.349014], zoom: 5
@@ -33,6 +33,11 @@ var MODE = {
     MAP: "MAP"
 };
 var mode = MODE.BUBBLE_CHART;
+
+var valeurProspective = d3.select("#selectProspective").node().value,
+    valeurAnnee = d3.select("#selectAnnee").node().value,
+    valeurVar1 = d3.select("#selectVar1").node().value,
+    valeurVar2 = d3.select("#selectVar2").node().value;
 
 // chargement de l'animation
 d3.json("data/data.json", function (error, json) {
@@ -55,6 +60,74 @@ function next() {
 
 function cleanNextButton() {
     d3.selectAll(".buttonNext").remove();
+}
+
+// *****************************************************************************************************************************
+// select prospective
+// *****************************************************************************************************************************
+
+function clickSelectProspective() {
+    valeurProspective = d3.select("#selectProspective").node().value;
+    manageChanges();
+}
+
+function cleanSelectProspective() {
+    d3.selectAll("#selectProspective").remove();
+}
+
+// *****************************************************************************************************************************
+// select annee
+// *****************************************************************************************************************************
+
+function clickSelectAnnee() {
+    valeurAnnee = d3.select("#selectAnnee").node().value;
+    manageChanges();
+}
+
+function cleanSelectAnnee() {
+    d3.selectAll("#selectAnnee").remove();
+}
+
+// *****************************************************************************************************************************
+// select var1
+// *****************************************************************************************************************************
+
+function clickSelectVar1() {
+    valeurVar1 = d3.select("#selectVar1").node().value;
+    manageChanges();
+
+}
+
+function cleanSelectVar1() {
+    d3.selectAll("#selectVar1").remove();
+}
+
+// *****************************************************************************************************************************
+// select var2
+// *****************************************************************************************************************************
+
+function clickSelectVar2() {
+    valeurVar2 = d3.select("#selectVar2").node().value;
+    manageChanges();
+}
+
+function cleanSelectVar2() {
+    d3.selectAll("#selectVar2").remove();
+}
+
+function manageChanges() {
+    if (mode == MODE.BUBBLE_CHART) {
+        setBubbleCircle(true);
+        cleanLegend();
+        addLegend();
+    } else if (mode == MODE.CHART) {
+        nettoyageAxe();
+        setChart();
+    } else if (mode == MODE.MAP) {
+        setBubbleCircle(true);
+        cleanLegend();
+        addLegend();
+    }
 }
 
 // *****************************************************************************************************************************
@@ -137,10 +210,7 @@ function setBubbleChart() {
         });
 
 
-    nodeEnter.append("circle")
-        .attr("r", function (d) {
-            return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
-        });
+    nodeEnter.append("circle");
 
     nodeEnter.append("text")
         .attr("dy", ".35em")
@@ -149,10 +219,45 @@ function setBubbleChart() {
             return d.name;
         });
 
-    node.selectAll("circle")
-        .style("fill", color);
+    setBubbleCircle(false);
     addToolTipBehaviourOnCircle();
 
+}
+
+function setBubbleCircle(avecTransition) {
+    var circles = node.selectAll("circle");
+    if (avecTransition) {
+        circles.transition()
+            .delay(spec.transition.delai1)
+            .duration(spec.transition.duration3)
+            .attr("r", function (d) {
+                return Math.sqrt(getVarValue(d, valeurVar2)) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
+            })
+            .style("fill", color);
+    } else {
+        circles.attr("r", function (d) {
+            return Math.sqrt(getVarValue(d, valeurVar2)) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
+        })
+            .style("fill", color);
+    }
+
+}
+
+function getVarValue(d, valeurVar) {
+    if (d.prospectives != undefined) {
+        var prospective = d3.map(d.prospectives, function (d) {
+            return d.id;
+        }).get(valeurProspective);
+        var variable = d3.map(prospective.valeursVariables, function (d) {
+            return d.variable;
+        }).get(valeurVar);
+        var valeurAnnuelle = d3.map(variable.valeurAnnuelles, function (d) {
+            return d.annee;
+        }).get(valeurAnnee);
+        return valeurAnnuelle.valeur;
+    } else {
+        return null;
+    }
 }
 
 function setBubbleChartTitle() {
@@ -171,7 +276,7 @@ function setBubbleChartTitle() {
 function addToolTipBehaviourOnCircle() {
     var circles = node.selectAll("circle");
     circles.filter(function (d) {
-        return d.fiscalite != null && d.population != null
+        return getVarValue(d, valeurVar1) != null && getVarValue(d, valeurVar2) != null
     })
         .on("mouseover", function (d) {
             if (d.children == undefined) {
@@ -186,9 +291,11 @@ function addToolTipBehaviourOnCircle() {
         })
         .on("mousemove", function (d) {
             if (d.children == undefined) {
+                var nomVar1 = $('#selectVar1').find(":selected").text();
+                var nomVar2 = $('#selectVar2').find(":selected").text();
                 tooltip.style("top",
                         (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px")
-                    .html(d.name + "" + "<br/>" + "Fiscalite : " + d.fiscalite + "<br/>" + "Population :" + d.population)
+                    .html(d.name + "" + "<br/>" + nomVar1 + " : " + getVarValue(d, valeurVar1) + "<br/>" + nomVar2 + " :" + getVarValue(d, valeurVar2))
                 ;
             } else {
                 tooltip
@@ -213,7 +320,7 @@ function addToolTipBehaviourOnCircle() {
 function removeToolTipBehaviourOnCircles() {
     var circles = node.selectAll("circle");
     circles.filter(function (d) {
-        return d.fiscalite != null && d.population != null
+        return getVarValue(d, valeurVar1) != null && getVarValue(d, valeurVar2) != null
     })
         .on("mouseover", null)
         .on("mousemove", null)
@@ -249,14 +356,14 @@ function color(d) {
 
 function scale(d) {
     var f = flatten(d.father);
-    var minFiscalite = d3.min(f, function (node) {
-        return node.fiscalite;
+    var minVar1 = d3.min(f, function (node) {
+        return getVarValue(node, valeurVar1);
     });
-    var maxFiscalite = d3.max(f, function (node) {
-        return node.fiscalite;
+    var maxVar2 = d3.max(f, function (node) {
+        return getVarValue(node, valeurVar1);
     });
     var rangeColor = d3.scale.quantile().range(colorBrewer.colors)
-    return rangeColor.domain([minFiscalite, maxFiscalite])(d.fiscalite);
+    return rangeColor.domain([minVar1, maxVar2])(getVarValue(d, valeurVar1));
 }
 
 // Toggle children on click.
@@ -281,7 +388,7 @@ function cleanBubbleChart() {
     // cleaning
     d3.selectAll(".node")
         .filter(function (d) {
-            return d.fiscalite == null && d.population == null
+            return getVarValue(d, valeurVar1) == null && getVarValue(d, valeurVar2) == null
         })
         .remove();
     d3.selectAll(".link").remove();
@@ -295,6 +402,7 @@ function cleanShuffleButton() {
 // Chart
 // *****************************************************************************************************************************
 function toChart() {
+    mode = MODE.CHART;
     setChart();
     setChartTitle();
     cleanBubbleChart();
@@ -304,21 +412,22 @@ function toChart() {
 }
 
 function setChart() {
-    mode = MODE.CHART;
     var x = d3.scale.linear().range([0, windowInformation.width]);
     var y = d3.scale.linear().range([windowInformation.height, 0]);
+
+    var maxVar1 = d3.max(flatten(root), function (node) {
+        return node.children ? 0 : getVarValue(node, valeurVar1);
+    });
+    x.domain([0, maxVar1]);
+
+    var maxVar2 = d3.max(flatten(root), function (node) {
+        return node.children ? 0 : getVarValue(node, valeurVar2);
+    });
+    y.domain([0, maxVar2]);
+
     var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);
     var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
 
-    var maxFisca = d3.max(flatten(root), function (node) {
-        return node.children ? 0 : node.fiscalite;
-    });
-    x.domain([0, maxFisca]);
-
-    var maxPop = d3.max(flatten(root), function (node) {
-        return node.children ? 0 : node.population;
-    });
-    y.domain([0, maxPop]);
     // add axis
     addChartAxis(xAxis, yAxis);
     // animate nodes to their charts destination position
@@ -330,13 +439,13 @@ function setChartNodes(x, y) {
     var nodes = d3.selectAll(".node");
     nodes
         .filter(function (d) {
-            return d.fiscalite != null || d.population != null
+            return getVarValue(d, valeurVar1) != null || getVarValue(d, valeurVar2) != null
         })
         .transition()
         .delay(spec.transition.delai1)
         .duration(spec.transition.duration3)
         .attr("transform", function (d) {
-            return "translate(" + x(d.fiscalite) + "," + y(d.population) + ")";
+            return "translate(" + x(getVarValue(d, valeurVar1)) + "," + y(getVarValue(d, valeurVar2)) + ")";
         });
     nodes.selectAll("circle")
         .transition()
@@ -366,9 +475,9 @@ function setChartTitle() {
         .delay(spec.transition.delai3)
         .duration(spec.transition.duration3)
         .text("Visualisation des entités communautés de commune, communautés urbaine et commune. " +
-            "Representation de la population et de la fiscalité. " +
-            "La valeur pour chaque entitée de la population est représentée par l'axe des ordonnées." +
-            "La valeur pour chaque entitée de la fiscalité est représentée par l'axe des abscisses.")
+            "Representation d'une variable et d'une autre. " +
+            "La valeur pour chaque entitée de la variable 2 est représentée par l'axe des ordonnées." +
+            "La valeur pour chaque entitée de la variable 1 est représentée par l'axe des abscisses.")
     ;
 }
 function addChartAxis(xAxis, yAxis) {
@@ -390,7 +499,7 @@ function addChartAxis(xAxis, yAxis) {
         .style("text-anchor", "middle")
         .transition()
         .delay(spec.transition.delai3)
-        .text("Fiscalité");
+        .text(getVar1Value());
     svgBubbleAndChart.append("text")
         .attr("class", "axisTitle")
         .attr("transform", "rotate(-90)")
@@ -400,7 +509,12 @@ function addChartAxis(xAxis, yAxis) {
         .style("text-anchor", "middle")
         .transition()
         .delay(spec.transition.delai3)
-        .text("Population");
+        .text(getVar2Value());
+}
+
+function nettoyageAxe() {
+    d3.selectAll(".axis").remove();
+    d3.selectAll(".axisTitle").remove();
 }
 
 /*
@@ -430,20 +544,20 @@ function flatten(root) {
 function calculateMinMaxFiscalite() {
     var f = flatten(root);
     var min = d3.min(f, function (node) {
-        return node.fiscalite;
+        return getVarValue(node, valeurVar1);
     });
     var max = d3.max(f, function (node) {
-        return node.fiscalite;
+        return getVarValue(node, valeurVar1);
     });
     return {min: min, max: max};
 }
 function calculateMinMaxPopulation() {
     var f = flatten(root);
     var min = d3.min(f, function (node) {
-        return node.population;
+        return getVarValue(node, valeurVar2);
     });
     var max = d3.max(f, function (node) {
-        return node.population;
+        return getVarValue(node, valeurVar2);
     });
     return {min: min, max: max};
 }
@@ -466,11 +580,6 @@ function effetZoomAvecDelaySur(id, delay) {
         .duration(spec.transition.duration3)
         .style("font-size", font_size_original)
     ;
-}
-
-function nettoyageAxe() {
-    d3.selectAll(".axis").remove();
-    d3.selectAll(".axisTitle").remove();
 }
 
 // *****************************************************************************************************************************
@@ -519,7 +628,7 @@ function setMap() {
                     y + ")";
             });
         nodes.selectAll("circle").attr("r", function (d) {
-            return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
+            return Math.sqrt(getVarValue(d, valeurVar2)) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
         });
 
     });
@@ -540,7 +649,7 @@ function setMap() {
         .delay(spec.transition.delai1)
         .duration(spec.transition.duration4)
         .attr("r", function (d) {
-            return Math.sqrt(d.population) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
+            return Math.sqrt(getVarValue(d, valeurVar2)) / bubbleChart.circleData.facteurRayon || bubbleChart.circleData.rayonParDefaut;
         });
     addToolTipBehaviourOnCircle();
     d3.selectAll(".node")
@@ -593,10 +702,11 @@ function legend(lg) {
         })
         .call(legendPopulation);
 }
+
 function legendPopulation(g) {
     var population = g.append("text")
         .attr("id", "idPopulationTextLegende")
-        .text("Population");
+        .text(getVar2Value());
     effetZoomAvecDelaySur("#" + population.attr("id"), spec.transition.delai4);
     var minMax = calculateMinMaxPopulation();
     var min = minMax.min;
@@ -609,7 +719,7 @@ function legendPopulation(g) {
     g.append("text")
         .text(max)
         .attr("transform", function () {
-            return "translate(" + -40 + "," + 50 + ")";
+            return "translate(" + -40 + "," + 100 + ")";
         });
     g.append("circle")
         .attr("class", "circleLegend")
@@ -622,7 +732,7 @@ function legendPopulation(g) {
     g.append("circle")
         .attr("class", "circleLegend")
         .attr("transform", function () {
-            return "translate(" + 25 + "," + 50 + ")";
+            return "translate(" + 25 + "," + 100 + ")";
         })
         .attr("r", function () {
             return Math.sqrt(max) / spec.circleData.facteurRayon || 4.5
@@ -643,7 +753,7 @@ function legendFiscalite(g) {
     }
     var fiscaliteText = g.append("text")
         .attr("id", "idFiscaliteTextLegende")
-        .text("Fiscalite");
+        .text(getVar1Value());
     effetZoomAvecDelaySur("#" + fiscaliteText.attr("id"), spec.transition.delai5);
     fiscaliteText
         .attr("transform", function () {
@@ -695,4 +805,13 @@ function WindowInformation() {
 
     this.svgWidth = this.width + this.margin.left + this.margin.right;
     this.svgHeight = this.height + this.margin.top + this.margin.bottom;
+}
+
+
+function getVar1Value(){
+    return $('#selectVar1').find(":selected").text();
+}
+
+function getVar2Value(){
+    return $('#selectVar2').find(":selected").text();
 }
